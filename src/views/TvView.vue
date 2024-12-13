@@ -36,136 +36,162 @@ onMounted(async () => {
 </script>
 
 <template>
-  <h1>Programas de TV</h1>
-  <ul class="genre-list">
-    <li
-      v-for="genre in genreStore.genres"
-      :key="genre.id"
-      @click="listTvs(genre.id)"
-      class="genre-item"
-      :class="{ active: genre.id === genreStore.currentGenreId }"
-    >
-      {{ genre.name }}
-    </li>
-  </ul>
-
-  <loading v-model:active="isLoading" is-full-page />
-
-  <div class="Tv-list">
-    <div v-for="Tv in tvs" :key="Tv.id" class="Tv-card">
-      <img
-        :src="`https://image.tmdb.org/t/p/w500${Tv.poster_path}`"
-        :alt="Tv.name"
-        @click="openTv(Tv.id)"
-      />
-      <div class="Tv-details">
-        <p class="Tv-title">{{ Tv.name }}</p>
-        <p class="Tv-first-air-date">{{ formatDate(Tv.first_air_date) }}</p>
-        <p class="Tv-genres">
-          <span
-            v-for="genre_id in Tv.genre_ids"
-            :key="genre_id"
-            @click="listTvs(genre_id)"
-            :class="{ active: genre_id === genreStore.currentGenreId }"
-          >
-            {{ genreStore.getGenreName(genre_id) }}
-          </span>
-        </p>
+  <div class="container">
+    <h1 class="title">Programas de TV</h1>
+    <ul class="genre-list">
+      <li
+        v-for="genre in genreStore.genres"
+        :key="genre.id"
+        @click="listTvs(genre.id)"
+        class="genre-item"
+        :class="{ active: genre.id === genreStore.currentGenreId }"
+      >
+        {{ genre.name }}
+      </li>
+    </ul>
+    <loading v-model:active="isLoading" :can-cancel="false" :is-full-page="true" />
+    <div class="tv-grid">
+      <div v-for="tv in tvs" :key="tv.id" class="tv-card">
+        <img :src="`https://image.tmdb.org/t/p/w500${tv.poster_path}`" :alt="tv.name" @click="openTv(tv.id)" />
+        <div class="tv-details">
+          <h2 class="tv-title">{{ tv.name }}</h2>
+          <p class="tv-first-air-date">{{ formatDate(tv.first_air_date) }}</p>
+          <div class="tv-genres">
+            <span
+              v-for="genre_id in tv.genre_ids"
+              :key="genre_id"
+              @click.stop="listTvs(genre_id)"
+              :class="{ active: genre_id === genreStore.currentGenreId }"
+            >
+              {{ genreStore.getGenreName(genre_id) }}
+            </span>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <style scoped>
+:root {
+  --primary-color: #ffd700;
+  --secondary-color: #0077be;
+  --text-color: #ffffff;
+  --background-color: #000000;
+  --accent-color: #00aaff;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: var(--background-color);
+  color: var(--text-color);
+}
+
+.title {
+  font-size: 3rem;
+  text-align: center;
+  margin-bottom: 30px;
+  color: var(--primary-color);
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.5), 0 0 20px rgba(0, 119, 190, 0.3);
+}
+
 .genre-list {
   display: flex;
-  justify-content: center;
   flex-wrap: wrap;
-  gap: 2rem;
-  list-style: none;
-  margin-bottom: 2rem;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 30px;
 }
 
 .genre-item {
-  background-color: #5d6424;
-  border-radius: 1rem;
-  padding: 0.5rem 1rem;
-  align-self: center;
-  color: #fff;
-  display: flex;
-  justify-content: center;
-}
-
-.genre-item:hover {
+  background-color: var(--secondary-color);
+  color: var(--text-color);
+  padding: 8px 16px;
+  border-radius: 20px;
   cursor: pointer;
-  background-color: #7d8a2e;
-  box-shadow: 0 0 0.5rem #5d6424;
+  transition: all 0.3s ease;
+  border: 2px solid var(--primary-color);
 }
 
-.Tv-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
+.genre-item:hover, .genre-item.active {
+  background-color: var(--primary-color);
+  color: var(--background-color);
+  transform: scale(1.05);
+  box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
 }
 
-.Tv-card {
-  width: 15rem;
-  height: 30rem;
-  border-radius: 0.5rem;
+.tv-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 20px;
+}
+
+.tv-card {
+  background-color: var(--secondary-color);
+  border-radius: 10px;
   overflow: hidden;
-  box-shadow: 0 0 0.5rem #000;
+  transition: transform 0.3s ease;
+  border: 2px solid var(--primary-color);
 }
 
-.Tv-card img {
+.tv-card:hover {
+  transform: translateY(-5px) scale(1.03);
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.4), 0 0 30px rgba(0, 119, 190, 0.3);
+}
+
+.tv-card img {
   width: 100%;
-  height: 20rem;
-  border-radius: 0.5rem;
-  box-shadow: 0 0 0.5rem #000;
-}
-
-.Tv-details {
-  padding: 0 0.5rem;
-}
-
-.Tv-title {
-  font-size: 1.1rem;
-  font-weight: bold;
-  line-height: 1.3rem;
-  height: 3.2rem;
-}
-
-.Tv-genres {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  justify-content: center;
-  gap: 0.2rem;
-}
-
-.Tv-genres span {
-  background-color: #748708;
-  border-radius: 0.5rem;
-  padding: 0.2rem 0.5rem;
-  color: #fff;
-  font-size: 0.8rem;
-  font-weight: bold;
-}
-
-.Tv-genres span:hover {
+  height: 300px;
+  object-fit: cover;
   cursor: pointer;
-  background-color: #455a08;
-  box-shadow: 0 0 0.5rem #748708;
 }
 
-.active {
-  background-color: #67b086;
-  font-weight: bolder;
+.tv-details {
+  padding: 15px;
+  background: linear-gradient(to bottom, var(--secondary-color), var(--background-color));
 }
 
-.Tv-genres span.active {
-  background-color: #abc322;
-  color: #000;
-  font-weight: bolder;
+.tv-title {
+  font-size: 1.2rem;
+  margin-bottom: 5px;
+  color: var(--primary-color);
+  text-shadow: 0 0 5px rgba(255, 215, 0, 0.3);
+}
+
+.tv-first-air-date {
+  font-size: 0.9rem;
+  color: var(--accent-color);
+  margin-bottom: 10px;
+}
+
+.tv-genres {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.tv-genres span {
+  background-color: var(--accent-color);
+  color: var(--background-color);
+  padding: 3px 8px;
+  border-radius: 10px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.tv-genres span:hover, .tv-genres span.active {
+  background-color: var(--primary-color);
+  color: var(--background-color);
+  box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+}
+
+@media (max-width: 768px) {
+  .tv-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  }
 }
 </style>
+
